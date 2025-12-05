@@ -1,0 +1,65 @@
+.number-pad {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+}
+
+.number-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.number-pad button {
+  width: 60px;
+  height: 60px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.1s;
+  background: var(--primary-color);
+  color: white;
+  box-shadow: 0 4px 10px rgba(74, 144, 217, 0.3);
+}
+
+.number-pad button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(74, 144, 217, 0.4);
+}
+
+.number-pad button:active {
+  transform: translateY(0);
+}
+
+.number-pad .clear-btn {
+  background: var(--danger-color);
+  box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+}
+
+.number-pad .clear-btn:hover {
+  box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4);
+}
+
+.number-pad .back-btn {
+  background: var(--warning-color);
+  box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);
+}
+
+.number-pad .back-btn:hover {
+  box-shadow: 0 6px 15px rgba(243, 156, 18, 0.4);
+}
+
+.submit-btn {
+  width: 100% !important;
+  height: 50px !important;
+  background: var(--secondary-color) !important;
+  box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3) !important;
+  margin-top: 10px;
+}
+
+.submit-btn:hover {
+  box-shadow: 0 6px 15px rgba(46, 204, 113, 0.4) !important;
+}

@@ -1,0 +1,229 @@
+.start-screen {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 90%;
+}
+
+.title-section {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.title-section h1 {
+  color: var(--text-color);
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+}
+
+.star-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 1.5rem;
+}
+
+.star-icon {
+  font-size: 2rem;
+}
+
+.star-count {
+  color: var(--warning-color);
+  font-weight: bold;
+}
+
+.settings-panel {
+  background: #f8f9fa;
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 25px;
+}
+
+.settings-panel h2 {
+  color: var(--text-color);
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 1.3rem;
+}
+
+.setting-group {
+  margin-bottom: 20px;
+}
+
+.setting-group label {
+  display: block;
+  color: var(--text-color);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.number-input {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.number-input button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--primary-color);
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.number-input button:hover {
+  background: #3a7bc8;
+  transform: scale(1.1);
+}
+
+.number-input span {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--text-color);
+  min-width: 40px;
+  text-align: center;
+}
+
+.number-input.small button {
+  width: 32px;
+  height: 32px;
+  font-size: 1.2rem;
+}
+
+.number-input.small span {
+  font-size: 1.2rem;
+  min-width: 30px;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.button-group button {
+  padding: 10px 15px;
+  border: 2px solid var(--primary-color);
+  background: white;
+  color: var(--primary-color);
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.button-group button:hover {
+  background: #e8f4fc;
+}
+
+.button-group button.active {
+  background: var(--primary-color);
+  color: white;
+}
+
+.toggle-container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.toggle-btn {
+  flex: 1;
+  max-width: 150px;
+  padding: 12px 15px;
+  border: 2px solid var(--primary-color);
+  background: white;
+  color: var(--primary-color);
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.toggle-btn:hover {
+  background: #e8f4fc;
+}
+
+.toggle-btn.active {
+  background: var(--primary-color);
+  color: white;
+}
+
+.mode-example {
+  font-size: 0.75rem;
+  font-weight: normal;
+  opacity: 0.7;
+}
+
+.toggle-btn.active .mode-example {
+  opacity: 1;
+}
+
+.range-inputs {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+}
+
+.range-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.range-input span {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.button-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.start-button,
+.resume-button {
+  padding: 15px 30px;
+  font-size: 1.3rem;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.start-button {
+  background: var(--secondary-color);
+  color: white;
+}
+
+.start-button:hover {
+  background: #27ae60;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(46, 204, 113, 0.4);
+}
+
+.resume-button {
+  background: var(--primary-color);
+  color: white;
+}
+
+.resume-button:hover {
+  background: #3a7bc8;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(74, 144, 217, 0.4);
+}
