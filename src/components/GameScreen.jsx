@@ -29,6 +29,14 @@ export default function GameScreen({ settings, onGameEnd, onStarsEarned, savedGa
   const canvasRef = useRef(null);
   const gameStateRef = useRef(gameState);
   const tryStartRepairRef = useRef(null);
+  const containerRef = useRef(null);
+
+  // Focus the container on mount to ensure keyboard events work
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.focus();
+    }
+  }, []);
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -601,7 +609,7 @@ export default function GameScreen({ settings, onGameEnd, onStarsEarned, savedGa
   const nearbyAC = getNearbyAC();
 
   return (
-    <div className="game-screen">
+    <div className="game-screen" ref={containerRef} tabIndex={-1}>
       <div className="game-hud">
         <div className="hud-item">
           Round: {gameState.currentRound} / {settings.numRounds}
