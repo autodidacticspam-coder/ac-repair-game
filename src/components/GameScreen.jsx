@@ -30,12 +30,155 @@ export default function GameScreen({ settings, onGameEnd, onStarsEarned, savedGa
   const gameStateRef = useRef(gameState);
   const tryStartRepairRef = useRef(null);
   const containerRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const musicNodesRef = useRef(null);
+  const [musicPlaying, setMusicPlaying] = useState(settings.musicEnabled);
 
   // Focus the container on mount to ensure keyboard events work
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.focus();
     }
+  }, []);
+
+  // Background music system
+  const startMusic = useCallback(() => {
+    if (audioContextRef.current) return; // Already playing
+
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    audioContextRef.current = audioContext;
+
+    const masterGain = audioContext.createGain();
+    masterGain.gain.value = 0.15; // Keep it quiet for background
+    masterGain.connect(audioContext.destination);
+
+    // Create a cheerful, simple melody loop
+    const playMelody = () => {
+      if (!audioContextRef.current) return;
+
+      const now = audioContext.currentTime;
+
+      // Cheerful major scale melody - kid friendly
+      const melody = [
+        { note: 'C4', duration: 0.25 },
+        { note: 'E4', duration: 0.25 },
+        { note: 'G4', duration: 0.25 },
+        { note: 'E4', duration: 0.25 },
+        { note: 'F4', duration: 0.25 },
+        { note: 'A4', duration: 0.25 },
+        { note: 'G4', duration: 0.5 },
+        { note: 'E4', duration: 0.25 },
+        { note: 'D4', duration: 0.25 },
+        { note: 'C4', duration: 0.5 },
+        { note: 'D4', duration: 0.25 },
+        { note: 'E4', duration: 0.25 },
+        { note: 'F4', duration: 0.25 },
+        { note: 'G4', duration: 0.25 },
+        { note: 'A4', duration: 0.25 },
+        { note: 'G4', duration: 0.25 },
+        { note: 'E4', duration: 0.25 },
+        { note: 'C4', duration: 0.25 },
+        { note: 'D4', duration: 0.5 },
+        { note: 'G3', duration: 0.25 },
+        { note: 'C4', duration: 0.75 },
+      ];
+
+      const noteFreqs = {
+        'G3': 196.00, 'C4': 261.63, 'D4': 293.66, 'E4': 329.63,
+        'F4': 349.23, 'G4': 392.00, 'A4': 440.00, 'B4': 493.88, 'C5': 523.25
+      };
+
+      let time = now;
+      melody.forEach(({ note, duration }) => {
+        // Main melody oscillator
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+
+        osc.type = 'triangle'; // Soft, kid-friendly tone
+        osc.frequency.value = noteFreqs[note];
+
+        gain.gain.setValueAtTime(0, time);
+        gain.gain.linearRampToValueAtTime(0.3, time + 0.02);
+        gain.gain.linearRampToValueAtTime(0.2, time + duration * 0.5);
+        gain.gain.linearRampToValueAtTime(0, time + duration * 0.9);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+
+        osc.start(time);
+        osc.stop(time + duration);
+
+        time += duration;
+      });
+
+      // Add a simple bass line
+      const bassNotes = [
+        { note: 'C4', duration: 1 },
+        { note: 'G3', duration: 1 },
+        { note: 'C4', duration: 1 },
+        { note: 'G3', duration: 1 },
+        { note: 'C4', duration: 1 },
+        { note: 'G3', duration: 0.5 },
+        { note: 'C4', duration: 0.5 },
+      ];
+
+      let bassTime = now;
+      bassNotes.forEach(({ note, duration }) => {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.value = noteFreqs[note] / 2; // One octave lower
+
+        gain.gain.setValueAtTime(0.15, bassTime);
+        gain.gain.linearRampToValueAtTime(0.1, bassTime + duration * 0.8);
+        gain.gain.linearRampToValueAtTime(0, bassTime + duration);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+
+        osc.start(bassTime);
+        osc.stop(bassTime + duration);
+
+        bassTime += duration;
+      });
+
+      // Calculate total duration and schedule next loop
+      const totalDuration = melody.reduce((sum, n) => sum + n.duration, 0);
+      musicNodesRef.current = setTimeout(() => playMelody(), totalDuration * 1000);
+    };
+
+    playMelody();
+    musicNodesRef.current = { masterGain };
+  }, []);
+
+  const stopMusic = useCallback(() => {
+    if (musicNodesRef.current && typeof musicNodesRef.current === 'number') {
+      clearTimeout(musicNodesRef.current);
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+    musicNodesRef.current = null;
+  }, []);
+
+  const toggleMusic = useCallback(() => {
+    if (musicPlaying) {
+      stopMusic();
+      setMusicPlaying(false);
+    } else {
+      startMusic();
+      setMusicPlaying(true);
+    }
+  }, [musicPlaying, startMusic, stopMusic]);
+
+  // Start/stop music based on setting
+  useEffect(() => {
+    if (settings.musicEnabled && musicPlaying) {
+      startMusic();
+    }
+    return () => stopMusic();
   }, []);
 
   // Keep ref in sync with state
@@ -620,6 +763,9 @@ export default function GameScreen({ settings, onGameEnd, onStarsEarned, savedGa
         <div className="hud-item">
           ACs Fixed: {gameState.map.acs.filter(ac => ac.fixed).length} / {settings.numACs}
         </div>
+        <button className="music-toggle" onClick={toggleMusic} title={musicPlaying ? 'Turn music off' : 'Turn music on'}>
+          {musicPlaying ? '🔊' : '🔇'}
+        </button>
       </div>
 
       <div className="game-container">

@@ -106,6 +106,24 @@ export default function StartScreen({ settings, totalStars, onStartGame, onSetti
             </div>
           </div>
         </div>
+
+        <div className="setting-group">
+          <label>Music</label>
+          <div className="toggle-container">
+            <button
+              className={`toggle-btn ${localSettings.musicEnabled ? 'active' : ''}`}
+              onClick={() => handleChange('musicEnabled', true)}
+            >
+              🔊 On
+            </button>
+            <button
+              className={`toggle-btn ${!localSettings.musicEnabled ? 'active' : ''}`}
+              onClick={() => handleChange('musicEnabled', false)}
+            >
+              🔇 Off
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="button-section">

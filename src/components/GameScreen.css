@@ -31,6 +31,21 @@
   font-size: 1.4rem;
 }
 
+.music-toggle {
+  background: none;
+  border: 2px solid var(--primary-color);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.music-toggle:hover {
+  background: var(--primary-color);
+  transform: scale(1.1);
+}
+
 .game-container {
   position: relative;
 }

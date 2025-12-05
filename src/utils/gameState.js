@@ -7,6 +7,7 @@ export const defaultSettings = {
   blankMode: false, // When true, shows "2 + ? = 5" instead of "2 + 3 = ?"
   minValue: 1,
   maxValue: 5,
+  musicEnabled: true, // Background music toggle
 };
 
 export const defaultGameState = {
