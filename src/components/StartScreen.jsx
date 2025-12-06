@@ -1,7 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { characters } from '../utils/gameState';
 import './StartScreen.css';
 
-export default function StartScreen({ settings, totalStars, onStartGame, onSettingsChange, hasSavedGame, onResume }) {
+export default function StartScreen({ settings, totalStars, selectedCharacter, onStartGame, onSettingsChange, hasSavedGame, onResume, onCharacterSelect }) {
+  const [characterImage, setCharacterImage] = useState(null);
+
+  const currentCharacter = characters.find(c => c.id === selectedCharacter) || characters[0];
+
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setCharacterImage(currentCharacter.image);
+    img.onerror = () => setCharacterImage(null);
+    img.src = currentCharacter.image;
+  }, [currentCharacter]);
   const [localSettings, setLocalSettings] = useState(settings);
 
   const handleChange = (key, value) => {
@@ -86,22 +97,44 @@ export default function StartScreen({ settings, totalStars, onStartGame, onSetti
         </div>
 
         <div className="setting-group">
-          <label>Number Range</label>
+          <label>First Number Range</label>
           <div className="range-inputs">
             <div className="range-input">
               <span>Min:</span>
               <div className="number-input small">
-                <button onClick={() => handleChange('minValue', Math.max(0, localSettings.minValue - 1))}>-</button>
-                <span>{localSettings.minValue}</span>
-                <button onClick={() => handleChange('minValue', Math.min(localSettings.maxValue - 1, localSettings.minValue + 1))}>+</button>
+                <button onClick={() => handleChange('minValue1', Math.max(0, localSettings.minValue1 - 1))}>-</button>
+                <span>{localSettings.minValue1}</span>
+                <button onClick={() => handleChange('minValue1', Math.min(localSettings.maxValue1 - 1, localSettings.minValue1 + 1))}>+</button>
               </div>
             </div>
             <div className="range-input">
               <span>Max:</span>
               <div className="number-input small">
-                <button onClick={() => handleChange('maxValue', Math.max(localSettings.minValue + 1, localSettings.maxValue - 1))}>-</button>
-                <span>{localSettings.maxValue}</span>
-                <button onClick={() => handleChange('maxValue', Math.min(99, localSettings.maxValue + 1))}>+</button>
+                <button onClick={() => handleChange('maxValue1', Math.max(localSettings.minValue1 + 1, localSettings.maxValue1 - 1))}>-</button>
+                <span>{localSettings.maxValue1}</span>
+                <button onClick={() => handleChange('maxValue1', Math.min(99, localSettings.maxValue1 + 1))}>+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="setting-group">
+          <label>Second Number Range</label>
+          <div className="range-inputs">
+            <div className="range-input">
+              <span>Min:</span>
+              <div className="number-input small">
+                <button onClick={() => handleChange('minValue2', Math.max(0, localSettings.minValue2 - 1))}>-</button>
+                <span>{localSettings.minValue2}</span>
+                <button onClick={() => handleChange('minValue2', Math.min(localSettings.maxValue2 - 1, localSettings.minValue2 + 1))}>+</button>
+              </div>
+            </div>
+            <div className="range-input">
+              <span>Max:</span>
+              <div className="number-input small">
+                <button onClick={() => handleChange('maxValue2', Math.max(localSettings.minValue2 + 1, localSettings.maxValue2 - 1))}>-</button>
+                <span>{localSettings.maxValue2}</span>
+                <button onClick={() => handleChange('maxValue2', Math.min(99, localSettings.maxValue2 + 1))}>+</button>
               </div>
             </div>
           </div>
@@ -123,6 +156,24 @@ export default function StartScreen({ settings, totalStars, onStartGame, onSetti
               🔇 Off
             </button>
           </div>
+        </div>
+      </div>
+
+      <div className="character-section" onClick={onCharacterSelect}>
+        <div className="selected-character">
+          {characterImage ? (
+            <img src={characterImage} alt={currentCharacter.name} className="character-preview" />
+          ) : (
+            <div className="character-fallback-preview" style={{ '--char-color': currentCharacter.color }}>
+              <div className="char-head" />
+              <div className="char-torso" />
+              <div className="char-legs" />
+            </div>
+          )}
+        </div>
+        <div className="character-info">
+          <span className="character-name">{currentCharacter.name}</span>
+          <span className="change-character">Tap to change</span>
         </div>
       </div>
 

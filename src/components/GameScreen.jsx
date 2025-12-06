@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { generateMap, generateMathProblem } from '../utils/gameState';
+import { generateMap, generateMathProblem, characters } from '../utils/gameState';
 import NumberPad from './NumberPad';
 import './GameScreen.css';
 
-export default function GameScreen({ settings, onGameEnd, onStarsEarned, savedGame, onSaveGame }) {
+export default function GameScreen({ settings, selectedCharacter, onGameEnd, onStarsEarned, savedGame, onSaveGame }) {
   const [gameState, setGameState] = useState(() => {
     if (savedGame) {
       return savedGame;
@@ -29,10 +29,23 @@ export default function GameScreen({ settings, onGameEnd, onStarsEarned, savedGa
   const canvasRef = useRef(null);
   const gameStateRef = useRef(gameState);
   const tryStartRepairRef = useRef(null);
+  const moveRepairmanRef = useRef(null);
   const containerRef = useRef(null);
   const audioContextRef = useRef(null);
   const musicNodesRef = useRef(null);
   const [musicPlaying, setMusicPlaying] = useState(settings.musicEnabled);
+  const [characterImage, setCharacterImage] = useState(null);
+
+  // Get current character data
+  const currentCharacter = characters.find(c => c.id === selectedCharacter) || characters[0];
+
+  // Check for custom character image on mount or when character changes
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setCharacterImage(currentCharacter.image);
+    img.onerror = () => setCharacterImage(null);
+    img.src = currentCharacter.image;
+  }, [currentCharacter]);
 
   // Focus the container on mount to ensure keyboard events work
   useEffect(() => {
@@ -181,10 +194,8 @@ export default function GameScreen({ settings, onGameEnd, onStarsEarned, savedGa
     return () => stopMusic();
   }, []);
 
-  // Keep ref in sync with state
-  useEffect(() => {
-    gameStateRef.current = gameState;
-  }, [gameState]);
+  // Keep ref in sync with state (set immediately, not in useEffect)
+  gameStateRef.current = gameState;
 
   // Save game state whenever it changes
   useEffect(() => {
@@ -196,7 +207,7 @@ export default function GameScreen({ settings, onGameEnd, onStarsEarned, savedGa
     setGameState(prev => {
       if (prev.activeAC || prev.roundComplete) return prev;
 
-      const speed = 5;
+      const speed = 10;
       let newX = prev.repairman.x + dx * speed;
       let newY = prev.repairman.y + dy * speed;
 
@@ -213,15 +224,7 @@ export default function GameScreen({ settings, onGameEnd, onStarsEarned, savedGa
         return { ...prev, repairman: { ...prev.repairman, direction, isMoving: false } };
       }
 
-      // Collision with obstacles
-      for (const obstacle of prev.map.obstacles) {
-        if (rectsCollide(
-          { x: newX, y: newY, width: prev.repairman.width, height: prev.repairman.height },
-          obstacle
-        )) {
-          return { ...prev, repairman: { ...prev.repairman, direction, isMoving: false } };
-        }
-      }
+      // Trees are purely decorative - no collision
 
       return {
         ...prev,
@@ -229,6 +232,9 @@ export default function GameScreen({ settings, onGameEnd, onStarsEarned, savedGa
       };
     });
   }, []);
+
+  // Set ref immediately (not in useEffect to avoid race condition)
+  moveRepairmanRef.current = moveRepairman;
 
   // Refs for keyboard handlers to access latest state
   const handleNumberInputRef = useRef(null);
@@ -314,16 +320,16 @@ export default function GameScreen({ settings, onGameEnd, onStarsEarned, savedGa
       const keys = keysPressed.current;
 
       if (keys.has('arrowup') || keys.has('w')) {
-        moveRepairman(0, -1, 'up');
+        if (moveRepairmanRef.current) moveRepairmanRef.current(0, -1, 'up');
       }
       if (keys.has('arrowdown') || keys.has('s')) {
-        moveRepairman(0, 1, 'down');
+        if (moveRepairmanRef.current) moveRepairmanRef.current(0, 1, 'down');
       }
       if (keys.has('arrowleft') || keys.has('a')) {
-        moveRepairman(-1, 0, 'left');
+        if (moveRepairmanRef.current) moveRepairmanRef.current(-1, 0, 'left');
       }
       if (keys.has('arrowright') || keys.has('d')) {
-        moveRepairman(1, 0, 'right');
+        if (moveRepairmanRef.current) moveRepairmanRef.current(1, 0, 'right');
       }
 
       gameLoopRef.current = requestAnimationFrame(gameLoop);
@@ -336,7 +342,7 @@ export default function GameScreen({ settings, onGameEnd, onStarsEarned, savedGa
         cancelAnimationFrame(gameLoopRef.current);
       }
     };
-  }, [moveRepairman]);
+  }, []); // No dependencies - uses refs
 
   // Check if near an AC - uses ref to always get current state
   const getNearbyAC = useCallback(() => {
@@ -356,7 +362,7 @@ export default function GameScreen({ settings, onGameEnd, onStarsEarned, savedGa
       };
 
       const distance = Math.hypot(repairmanCenter.x - acCenter.x, repairmanCenter.y - acCenter.y);
-      if (distance < 60) {
+      if (distance < 120) {
         return ac;
       }
     }
@@ -369,7 +375,7 @@ export default function GameScreen({ settings, onGameEnd, onStarsEarned, savedGa
 
     const nearbyAC = getNearbyAC();
     if (nearbyAC) {
-      const problem = generateMathProblem(settings.mathMode, settings.minValue, settings.maxValue, settings.blankMode);
+      const problem = generateMathProblem(settings.mathMode, settings.minValue1, settings.maxValue1, settings.minValue2, settings.maxValue2, settings.blankMode);
       setGameState(prev => ({
         ...prev,
         isRepairing: true,
@@ -386,10 +392,8 @@ export default function GameScreen({ settings, onGameEnd, onStarsEarned, savedGa
     }
   }, [getNearbyAC, settings.mathMode, settings.minValue, settings.maxValue]);
 
-  // Keep the ref updated with the latest function
-  useEffect(() => {
-    tryStartRepairRef.current = tryStartRepair;
-  }, [tryStartRepair]);
+  // Set ref immediately (not in useEffect to avoid race condition)
+  tryStartRepairRef.current = tryStartRepair;
 
   const handleNumberInput = useCallback((num) => {
     setGameState(prev => {
@@ -401,10 +405,8 @@ export default function GameScreen({ settings, onGameEnd, onStarsEarned, savedGa
     });
   }, []);
 
-  // Keep refs updated for keyboard handler
-  useEffect(() => {
-    handleNumberInputRef.current = handleNumberInput;
-  }, [handleNumberInput]);
+  // Set ref immediately
+  handleNumberInputRef.current = handleNumberInput;
 
   const handleClear = useCallback(() => {
     setGameState(prev => ({ ...prev, userAnswer: '' }));
@@ -417,10 +419,8 @@ export default function GameScreen({ settings, onGameEnd, onStarsEarned, savedGa
     }));
   }, []);
 
-  // Keep backspace ref updated
-  useEffect(() => {
-    handleBackspaceRef.current = handleBackspace;
-  }, [handleBackspace]);
+  // Set ref immediately
+  handleBackspaceRef.current = handleBackspace;
 
   const handleSubmit = useCallback(() => {
     const currentState = gameStateRef.current;
@@ -535,10 +535,8 @@ export default function GameScreen({ settings, onGameEnd, onStarsEarned, savedGa
     }
   }, [settings.numRounds, onStarsEarned, onGameEnd]);
 
-  // Keep submit ref updated
-  useEffect(() => {
-    handleSubmitRef.current = handleSubmit;
-  }, [handleSubmit]);
+  // Set ref immediately
+  handleSubmitRef.current = handleSubmit;
 
   const startNextRound = () => {
     const newMap = generateMap(settings.numACs);
@@ -840,11 +838,24 @@ export default function GameScreen({ settings, onGameEnd, onStarsEarned, savedGa
               height: gameState.repairman.height,
             }}
           >
-            <div className="repairman-body">
-              <div className="repairman-head"></div>
-              <div className="repairman-torso"></div>
-              <div className="repairman-legs"></div>
-            </div>
+            {characterImage ? (
+              <img
+                src={characterImage}
+                alt="Character"
+                className="character-sprite"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                }}
+              />
+            ) : (
+              <div className="repairman-body">
+                <div className="repairman-head"></div>
+                <div className="repairman-torso" style={{ background: `linear-gradient(180deg, ${currentCharacter.color} 0%, ${currentCharacter.color}dd 100%)` }}></div>
+                <div className="repairman-legs"></div>
+              </div>
+            )}
             {gameState.isRepairing && <div className="tool-animation">🔧</div>}
           </div>
 
