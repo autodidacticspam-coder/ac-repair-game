@@ -1,0 +1,138 @@
+.auth-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.auth-modal {
+  background: #1a1a2e;
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 360px;
+  position: relative;
+  border: 2px solid #4a9eff;
+  box-shadow: 0 8px 32px rgba(74, 158, 255, 0.3);
+}
+
+.auth-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+}
+
+.auth-close:hover {
+  color: #fff;
+}
+
+.auth-modal h2 {
+  color: #fff;
+  margin: 0 0 20px 0;
+  text-align: center;
+  font-size: 1.5rem;
+}
+
+.auth-field {
+  margin-bottom: 16px;
+}
+
+.auth-field label {
+  display: block;
+  color: #aaa;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+
+.auth-field input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #333;
+  border-radius: 8px;
+  background: #0d0d1a;
+  color: #fff;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.auth-field input:focus {
+  outline: none;
+  border-color: #4a9eff;
+}
+
+.auth-field input::placeholder {
+  color: #555;
+}
+
+.auth-error {
+  background: #ff4757;
+  color: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.auth-message {
+  background: #2ed573;
+  color: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.auth-submit {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #4a9eff, #0066cc);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.2s;
+}
+
+.auth-submit:hover:not(:disabled) {
+  transform: scale(1.02);
+}
+
+.auth-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-links {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.auth-links button {
+  background: none;
+  border: none;
+  color: #4a9eff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.auth-links button:hover {
+  text-decoration: underline;
+}

@@ -4,6 +4,17 @@
   padding: 0;
 }
 
+html, body {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  height: 100dvh; /* Dynamic viewport height for mobile */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: none;
+  touch-action: manipulation;
+}
+
 :root {
   --primary-color: #4a90d9;
   --secondary-color: #2ecc71;
@@ -17,7 +28,6 @@
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #87ceeb 0%, #98d4e8 100%);
-  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -25,8 +35,22 @@ body {
 
 #root {
   width: 100%;
-  height: 100vh;
+  height: 100%;
+  height: 100dvh;
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
+}
+
+/* Prevent pull-to-refresh and other touch gestures */
+body {
+  overscroll-behavior-y: contain;
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+  html, body, #root {
+    height: -webkit-fill-available;
+  }
 }

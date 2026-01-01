@@ -1,17 +1,23 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import StartScreen from './components/StartScreen';
 import CharacterSelectScreen from './components/CharacterSelectScreen';
 import GameScreen from './components/GameScreen';
 import GameComplete from './components/GameComplete';
 import { loadGameState, saveGameState, defaultSettings } from './utils/gameState';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { useGameSync } from './hooks/useGameSync';
 import './App.css';
 
-function App() {
+function AppContent() {
   const [screen, setScreen] = useState('start'); // 'start', 'characters', 'game', 'complete'
   const [gameState, setGameState] = useState(() => loadGameState());
   const [starsEarnedThisGame, setStarsEarnedThisGame] = useState(0);
   const [savedGameData, setSavedGameData] = useState(null);
   const [gameKey, setGameKey] = useState(0); // Used to force remount GameScreen
+
+  const { user } = useAuth();
+  const { syncStatus, syncOnLogin, debouncedSaveRemote } = useGameSync(user);
+  const prevUserRef = useRef(null);
 
   // Load saved game data on mount
   useEffect(() => {
@@ -22,10 +28,28 @@ function App() {
     }
   }, []);
 
+  // Sync when user logs in
+  useEffect(() => {
+    if (user && prevUserRef.current !== user.id) {
+      prevUserRef.current = user.id;
+      syncOnLogin().then((mergedState) => {
+        if (mergedState) {
+          setGameState(mergedState);
+        }
+      });
+    } else if (!user) {
+      prevUserRef.current = null;
+    }
+  }, [user, syncOnLogin]);
+
   // Save state whenever it changes
   useEffect(() => {
     saveGameState(gameState);
-  }, [gameState]);
+    // Also sync to remote if user is logged in
+    if (user) {
+      debouncedSaveRemote(gameState);
+    }
+  }, [gameState, user, debouncedSaveRemote]);
 
   const handleSettingsChange = (newSettings) => {
     setGameState(prev => ({
@@ -115,6 +139,7 @@ function App() {
           hasSavedGame={!!savedGameData}
           onResume={handleResumeGame}
           onCharacterSelect={handleCharacterScreen}
+          syncStatus={syncStatus}
         />
       )}
 
@@ -150,6 +175,14 @@ function App() {
         />
       )}
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

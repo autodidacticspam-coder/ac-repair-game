@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { characters } from '../utils/gameState';
+import { characters, getUnlockCost } from '../utils/gameState';
 import './CharacterSelectScreen.css';
 
 export default function CharacterSelectScreen({
@@ -12,6 +12,9 @@ export default function CharacterSelectScreen({
 }) {
   const [characterImages, setCharacterImages] = useState({});
   const [previewCharacter, setPreviewCharacter] = useState(null);
+
+  // Calculate the current unlock cost based on how many characters are unlocked
+  const currentUnlockCost = getUnlockCost(unlockedCharacters.length);
 
   // Load character images
   useEffect(() => {
@@ -38,8 +41,8 @@ export default function CharacterSelectScreen({
   };
 
   const handleUnlock = (char) => {
-    if (totalStars >= char.cost) {
-      onUnlockCharacter(char.id, char.cost);
+    if (totalStars >= currentUnlockCost) {
+      onUnlockCharacter(char.id, currentUnlockCost);
       setPreviewCharacter(null);
     }
   };
@@ -102,7 +105,7 @@ export default function CharacterSelectScreen({
                 {!isUnlocked && (
                   <div className="lock-overlay">
                     <span className="lock-icon">🔒</span>
-                    <span className="cost">⭐ {char.cost}</span>
+                    <span className="cost">⭐ {currentUnlockCost}</span>
                   </div>
                 )}
                 {isSelected && <div className="selected-badge">✓</div>}
@@ -123,7 +126,7 @@ export default function CharacterSelectScreen({
             <h2>{previewCharacter.name}</h2>
             <div className="preview-cost">
               <span className="star-icon">⭐</span>
-              <span>{previewCharacter.cost}</span>
+              <span>{currentUnlockCost}</span>
             </div>
 
             {/* Color swatches */}
@@ -135,13 +138,13 @@ export default function CharacterSelectScreen({
               />
             </div>
 
-            {totalStars >= previewCharacter.cost ? (
+            {totalStars >= currentUnlockCost ? (
               <button className="unlock-button" onClick={() => handleUnlock(previewCharacter)}>
-                Unlock for ⭐ {previewCharacter.cost}
+                Unlock for ⭐ {currentUnlockCost}
               </button>
             ) : (
               <div className="need-more-stars">
-                Need {previewCharacter.cost - totalStars} more stars
+                Need {currentUnlockCost - totalStars} more stars
               </div>
             )}
             <button className="close-button" onClick={closePreview}>

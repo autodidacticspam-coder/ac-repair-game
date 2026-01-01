@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
 import { characters } from '../utils/gameState';
+import { useAuth } from '../contexts/AuthContext';
+import AuthModal from './AuthModal';
 import './StartScreen.css';
 
-export default function StartScreen({ settings, totalStars, selectedCharacter, onStartGame, onSettingsChange, hasSavedGame, onResume, onCharacterSelect }) {
+export default function StartScreen({ settings, totalStars, selectedCharacter, onStartGame, onSettingsChange, hasSavedGame, onResume, onCharacterSelect, syncStatus }) {
   const [characterImage, setCharacterImage] = useState(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const { user, signOut, isConfigured } = useAuth();
 
   const currentCharacter = characters.find(c => c.id === selectedCharacter) || characters[0];
 
@@ -14,6 +18,10 @@ export default function StartScreen({ settings, totalStars, selectedCharacter, o
     img.src = currentCharacter.image;
   }, [currentCharacter]);
   const [localSettings, setLocalSettings] = useState(settings);
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   const handleChange = (key, value) => {
     const newSettings = { ...localSettings, [key]: value };
@@ -29,6 +37,23 @@ export default function StartScreen({ settings, totalStars, selectedCharacter, o
           <span className="star-icon">⭐</span>
           <span className="star-count">{totalStars}</span>
         </div>
+        {isConfigured && (
+          <div className="auth-section">
+            {user ? (
+              <div className="user-info">
+                <span className="user-email">{user.email}</span>
+                {syncStatus === 'syncing' && <span className="sync-status syncing">Syncing...</span>}
+                {syncStatus === 'synced' && <span className="sync-status synced">Synced</span>}
+                {syncStatus === 'error' && <span className="sync-status error">Sync error</span>}
+                <button className="auth-btn sign-out" onClick={handleSignOut}>Sign Out</button>
+              </div>
+            ) : (
+              <button className="auth-btn sign-in" onClick={() => setShowAuthModal(true)}>
+                Sign In
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="settings-panel">
@@ -187,6 +212,8 @@ export default function StartScreen({ settings, totalStars, selectedCharacter, o
           </button>
         )}
       </div>
+
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   );
 }

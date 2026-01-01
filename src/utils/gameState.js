@@ -1,16 +1,29 @@
 const STORAGE_KEY = 'ac-repair-game-state';
 
 // Character definitions - can use custom images or CSS fallback
+// Cost is calculated dynamically based on how many characters are already unlocked
 export const characters = [
   { id: 'repairman', name: 'Repairman', cost: 0, color: '#1976d2', image: '/characters/repairman.png' },
-  { id: 'bluey', name: 'Bluey', cost: 25, color: '#5ba4d9', image: '/characters/Bluey.png' },
-  { id: 'bingo', name: 'Bingo', cost: 25, color: '#e8a855', image: '/characters/Bingo.png' },
-  { id: 'rainbow-llama', name: 'Rainbow Llama', cost: 25, color: '#ff69b4', image: '/characters/Rainbow Llama.png' },
-  { id: 'curious-george', name: 'Curious George', cost: 25, color: '#8b4513', image: '/characters/Curious George.png' },
-  { id: 'orca', name: 'Orca', cost: 25, color: '#1a1a2e', image: '/characters/Orca.png' },
-  { id: 'qiaohu', name: 'Qiaohu', cost: 25, color: '#ff9800', image: '/characters/Qiaohu.png' },
-  { id: 'zander', name: 'Zander', cost: 25, color: '#9c27b0', image: '/characters/Zander.png' },
+  { id: 'bluey', name: 'Bluey', cost: 0, color: '#5ba4d9', image: '/characters/Bluey.png' },
+  { id: 'bingo', name: 'Bingo', cost: 0, color: '#e8a855', image: '/characters/Bingo.png' },
+  { id: 'rainbow-llama', name: 'Rainbow Llama', cost: 0, color: '#ff69b4', image: '/characters/Rainbow Llama.png' },
+  { id: 'curious-george', name: 'Curious George', cost: 0, color: '#8b4513', image: '/characters/Curious George.png' },
+  { id: 'orca', name: 'Orca', cost: 0, color: '#1a1a2e', image: '/characters/Orca.png' },
+  { id: 'qiaohu', name: 'Qiaohu', cost: 0, color: '#ff9800', image: '/characters/Qiaohu.png' },
+  { id: 'zander', name: 'Zander', cost: 0, color: '#9c27b0', image: '/characters/Zander.png' },
+  { id: 'poop', name: 'Poop', cost: 0, color: '#8b6914', image: '/characters/Poop.png' },
+  { id: 'vitamin-machine', name: 'Vitamin Machine', cost: 0, color: '#4caf50', image: '/characters/Vitamin Machine.png' },
+  { id: 'zara', name: 'Zara', cost: 0, color: '#e91e63', image: '/characters/zara.png' },
+  { id: 'zoe', name: 'Zoe', cost: 0, color: '#9c27b0', image: '/characters/Zoe.png' },
+  { id: 'daddy', name: 'Daddy', cost: 0, color: '#3f51b5', image: '/characters/Daddy.png' },
+  { id: 'grandpa', name: 'Grandpa', cost: 0, color: '#795548', image: '/characters/Grandpa.png' },
 ];
+
+// Calculate unlock cost based on how many characters are already unlocked
+// Base cost is 25, increases by 10 for each unlocked character
+export function getUnlockCost(unlockedCount) {
+  return 25 + (unlockedCount - 1) * 10; // -1 because repairman is free and doesn't count
+}
 
 export const defaultSettings = {
   numACs: 3,
@@ -32,6 +45,7 @@ export const defaultGameState = {
   currentGame: null, // Will hold in-progress game data
   unlockedCharacters: ['repairman'], // Start with first character unlocked
   selectedCharacter: 'repairman',
+  lastModified: null, // ISO timestamp for sync
 };
 
 export function loadGameState() {
@@ -41,9 +55,9 @@ export function loadGameState() {
       const parsed = JSON.parse(saved);
 
       // Check if we need to reset (version change or first time with new characters)
-      const needsReset = !parsed.version || parsed.version < 3;
+      // Version migration - preserve progress
 
-      if (needsReset) {
+      if (false) { // Disabled version reset
         // Reset to fresh state with version marker
         return {
           ...defaultGameState,
@@ -88,9 +102,15 @@ export function loadGameState() {
 
 export function saveGameState(state) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const stateWithTimestamp = {
+      ...state,
+      lastModified: new Date().toISOString(),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stateWithTimestamp));
+    return stateWithTimestamp;
   } catch (e) {
     console.error('Failed to save game state:', e);
+    return state;
   }
 }
 

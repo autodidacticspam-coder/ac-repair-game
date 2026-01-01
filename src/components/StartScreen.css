@@ -5,6 +5,10 @@
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   max-width: 500px;
   width: 90%;
+  max-height: 90vh;
+  max-height: 90dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .title-section {
@@ -306,4 +310,95 @@
   background: #3a7bc8;
   transform: translateY(-2px);
   box-shadow: 0 5px 20px rgba(74, 144, 217, 0.4);
+}
+
+/* Auth Section */
+.auth-section {
+  margin-top: 15px;
+}
+
+.auth-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.auth-btn.sign-in {
+  background: var(--primary-color);
+  color: white;
+}
+
+.auth-btn.sign-in:hover {
+  background: #3a7bc8;
+}
+
+.auth-btn.sign-out {
+  background: #e0e0e0;
+  color: #666;
+}
+
+.auth-btn.sign-out:hover {
+  background: #d0d0d0;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-email {
+  font-size: 0.85rem;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+.sync-status {
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+
+.sync-status.syncing {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.sync-status.synced {
+  background: #e8f5e9;
+  color: #43a047;
+}
+
+.sync-status.error {
+  background: #ffebee;
+  color: #e53935;
+}
+
+/* Tablet/iPad adjustments */
+@media (max-height: 800px) {
+  .start-screen {
+    padding: 25px;
+  }
+
+  .title-section {
+    margin-bottom: 20px;
+  }
+
+  .title-section h1 {
+    font-size: 2rem;
+  }
+
+  .settings-panel {
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .setting-group {
+    margin-bottom: 15px;
+  }
 }

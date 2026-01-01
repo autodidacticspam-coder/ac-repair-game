@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { generateMap, generateMathProblem, characters } from '../utils/gameState';
 import NumberPad from './NumberPad';
 import './GameScreen.css';
 
 export default function GameScreen({ settings, selectedCharacter, onGameEnd, onStarsEarned, savedGame, onSaveGame }) {
+  const [mapScale, setMapScale] = useState(1);
+  const gameContainerRef = useRef(null);
   const [gameState, setGameState] = useState(() => {
     if (savedGame) {
       return savedGame;
@@ -31,6 +33,8 @@ export default function GameScreen({ settings, selectedCharacter, onGameEnd, onS
   const tryStartRepairRef = useRef(null);
   const moveRepairmanRef = useRef(null);
   const containerRef = useRef(null);
+  const mapRef = useRef(null);
+  const targetPositionRef = useRef(null); // For click/touch-to-move
   const audioContextRef = useRef(null);
   const musicNodesRef = useRef(null);
   const [musicPlaying, setMusicPlaying] = useState(settings.musicEnabled);
@@ -53,6 +57,41 @@ export default function GameScreen({ settings, selectedCharacter, onGameEnd, onS
       containerRef.current.focus();
     }
   }, []);
+
+  // Calculate scale to fit map in viewport
+  useLayoutEffect(() => {
+    const calculateScale = () => {
+      if (!gameContainerRef.current) return;
+
+      const container = gameContainerRef.current;
+      const availableWidth = container.clientWidth - 16; // Account for padding
+      const availableHeight = container.clientHeight - 16;
+
+      const mapWidth = gameState.map.mapWidth;
+      const mapHeight = gameState.map.mapHeight;
+
+      // Calculate scale to fit both dimensions
+      const scaleX = availableWidth / mapWidth;
+      const scaleY = availableHeight / mapHeight;
+      const scale = Math.min(scaleX, scaleY, 1); // Don't scale up, only down
+
+      setMapScale(scale);
+    };
+
+    calculateScale();
+
+    // Recalculate on resize
+    window.addEventListener('resize', calculateScale);
+    // Also listen for orientation change on mobile
+    window.addEventListener('orientationchange', () => {
+      setTimeout(calculateScale, 100);
+    });
+
+    return () => {
+      window.removeEventListener('resize', calculateScale);
+      window.removeEventListener('orientationchange', calculateScale);
+    };
+  }, [gameState.map.mapWidth, gameState.map.mapHeight]);
 
   // Background music system
   const startMusic = useCallback(() => {
@@ -236,6 +275,45 @@ export default function GameScreen({ settings, selectedCharacter, onGameEnd, onS
   // Set ref immediately (not in useEffect to avoid race condition)
   moveRepairmanRef.current = moveRepairman;
 
+  // Click/touch-to-move handler
+  const handleMapClick = useCallback((e) => {
+    const currentState = gameStateRef.current;
+    if (currentState.activeAC || currentState.roundComplete) return;
+
+    const mapElement = mapRef.current;
+    if (!mapElement) return;
+
+    const rect = mapElement.getBoundingClientRect();
+
+    // Get click/touch position relative to the map
+    let clientX, clientY;
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+
+    // Calculate position on the map accounting for scale
+    // The rect is already scaled, so we need to adjust for the scale factor
+    const scaledX = clientX - rect.left;
+    const scaledY = clientY - rect.top;
+
+    // Convert from scaled coordinates to actual map coordinates
+    const mapX = scaledX / mapScale;
+    const mapY = scaledY / mapScale;
+
+    // Set target position (center the repairman on click point)
+    targetPositionRef.current = {
+      x: mapX - currentState.repairman.width / 2,
+      y: mapY - currentState.repairman.height / 2
+    };
+
+    // Clear keyboard movement when clicking
+    keysPressed.current.clear();
+  }, [mapScale]);
+
   // Refs for keyboard handlers to access latest state
   const handleNumberInputRef = useRef(null);
   const handleSubmitRef = useRef(null);
@@ -319,17 +397,57 @@ export default function GameScreen({ settings, selectedCharacter, onGameEnd, onS
     const gameLoop = () => {
       const keys = keysPressed.current;
 
-      if (keys.has('arrowup') || keys.has('w')) {
-        if (moveRepairmanRef.current) moveRepairmanRef.current(0, -1, 'up');
+      // Keyboard/D-pad movement takes priority and cancels click-to-move
+      if (keys.size > 0) {
+        targetPositionRef.current = null; // Cancel click-to-move
+
+        if (keys.has('arrowup') || keys.has('w')) {
+          if (moveRepairmanRef.current) moveRepairmanRef.current(0, -1, 'up');
+        }
+        if (keys.has('arrowdown') || keys.has('s')) {
+          if (moveRepairmanRef.current) moveRepairmanRef.current(0, 1, 'down');
+        }
+        if (keys.has('arrowleft') || keys.has('a')) {
+          if (moveRepairmanRef.current) moveRepairmanRef.current(-1, 0, 'left');
+        }
+        if (keys.has('arrowright') || keys.has('d')) {
+          if (moveRepairmanRef.current) moveRepairmanRef.current(1, 0, 'right');
+        }
       }
-      if (keys.has('arrowdown') || keys.has('s')) {
-        if (moveRepairmanRef.current) moveRepairmanRef.current(0, 1, 'down');
-      }
-      if (keys.has('arrowleft') || keys.has('a')) {
-        if (moveRepairmanRef.current) moveRepairmanRef.current(-1, 0, 'left');
-      }
-      if (keys.has('arrowright') || keys.has('d')) {
-        if (moveRepairmanRef.current) moveRepairmanRef.current(1, 0, 'right');
+      // Click-to-move when no keyboard input
+      else if (targetPositionRef.current) {
+        const target = targetPositionRef.current;
+        const currentState = gameStateRef.current;
+        const repairman = currentState.repairman;
+
+        const dx = target.x - repairman.x;
+        const dy = target.y - repairman.y;
+        const distance = Math.hypot(dx, dy);
+
+        // Stop when close enough to target
+        if (distance < 5) {
+          targetPositionRef.current = null;
+          setGameState(prev => ({
+            ...prev,
+            repairman: { ...prev.repairman, isMoving: false }
+          }));
+        } else {
+          // Normalize direction and move
+          const normalizedDx = dx / distance;
+          const normalizedDy = dy / distance;
+
+          // Determine direction for animation
+          let direction = 'down';
+          if (Math.abs(dx) > Math.abs(dy)) {
+            direction = dx > 0 ? 'right' : 'left';
+          } else {
+            direction = dy > 0 ? 'down' : 'up';
+          }
+
+          if (moveRepairmanRef.current) {
+            moveRepairmanRef.current(normalizedDx, normalizedDy, direction);
+          }
+        }
       }
 
       gameLoopRef.current = requestAnimationFrame(gameLoop);
@@ -766,11 +884,27 @@ export default function GameScreen({ settings, selectedCharacter, onGameEnd, onS
         </button>
       </div>
 
-      <div className="game-container">
+      <div className="game-container" ref={gameContainerRef}>
         <div
-          className="game-map isometric"
-          style={{ width: gameState.map.mapWidth, height: gameState.map.mapHeight }}
+          className="game-map-wrapper"
+          style={{
+            width: gameState.map.mapWidth * mapScale,
+            height: gameState.map.mapHeight * mapScale,
+          }}
         >
+          <div
+            ref={mapRef}
+            className="game-map isometric"
+            style={{
+              width: gameState.map.mapWidth,
+              height: gameState.map.mapHeight,
+              cursor: 'pointer',
+              transform: `scale(${mapScale})`,
+              transformOrigin: 'top left',
+            }}
+            onClick={handleMapClick}
+            onTouchStart={handleMapClick}
+          >
           {/* Grass background */}
           <div className="grass-bg"></div>
 
@@ -866,11 +1000,15 @@ export default function GameScreen({ settings, selectedCharacter, onGameEnd, onS
               style={{
                 left: nearbyAC.x + nearbyAC.width / 2,
                 top: nearbyAC.y - 40,
+                cursor: 'pointer',
               }}
+              onClick={(e) => { e.stopPropagation(); tryStartRepair(); }}
+              onTouchEnd={(e) => { e.stopPropagation(); tryStartRepair(); }}
             >
-              Press SPACE to repair
+              Tap here or press SPACE to repair
             </div>
           )}
+        </div>
         </div>
 
         {/* Math Problem Modal */}
