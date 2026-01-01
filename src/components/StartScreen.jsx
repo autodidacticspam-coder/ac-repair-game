@@ -37,23 +37,21 @@ export default function StartScreen({ settings, totalStars, selectedCharacter, o
           <span className="star-icon">⭐</span>
           <span className="star-count">{totalStars}</span>
         </div>
-        {isConfigured && (
-          <div className="auth-section">
-            {user ? (
-              <div className="user-info">
-                <span className="user-email">{user.email}</span>
-                {syncStatus === 'syncing' && <span className="sync-status syncing">Syncing...</span>}
-                {syncStatus === 'synced' && <span className="sync-status synced">Synced</span>}
-                {syncStatus === 'error' && <span className="sync-status error">Sync error</span>}
-                <button className="auth-btn sign-out" onClick={handleSignOut}>Sign Out</button>
-              </div>
-            ) : (
-              <button className="auth-btn sign-in" onClick={() => setShowAuthModal(true)}>
-                Sign In
-              </button>
-            )}
-          </div>
-        )}
+        <div className="auth-section">
+          {user ? (
+            <div className="user-info">
+              <span className="user-name">Playing as: {user.username}</span>
+              {syncStatus === 'syncing' && <span className="sync-status syncing">Syncing...</span>}
+              {syncStatus === 'synced' && <span className="sync-status synced">Synced</span>}
+              {syncStatus === 'error' && <span className="sync-status error">Sync error</span>}
+              <button className="auth-btn sign-out" onClick={handleSignOut}>Change Name</button>
+            </div>
+          ) : (
+            <button className="auth-btn sign-in" onClick={() => setShowAuthModal(true)}>
+              Save Progress
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="settings-panel">

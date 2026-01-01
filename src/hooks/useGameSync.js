@@ -7,30 +7,32 @@ export function useGameSync(user) {
   const [lastSynced, setLastSynced] = useState(null);
   const saveTimeoutRef = useRef(null);
 
+  const username = user?.username;
+
   // Fetch remote state from Supabase
   const fetchRemoteState = useCallback(async () => {
-    if (!user || !isSupabaseConfigured()) return null;
+    if (!username || !isSupabaseConfigured()) return null;
 
     const { data, error } = await supabase
       .from('user_game_state')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('username', username)
       .single();
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
       throw error;
     }
     return data;
-  }, [user]);
+  }, [username]);
 
   // Save state to Supabase
   const saveRemoteState = useCallback(async (state) => {
-    if (!user || !isSupabaseConfigured()) return;
+    if (!username || !isSupabaseConfigured()) return;
 
     const { error } = await supabase
       .from('user_game_state')
       .upsert({
-        user_id: user.id,
+        username: username,
         settings: state.settings,
         total_stars: state.totalStars,
         unlocked_characters: state.unlockedCharacters,
@@ -38,12 +40,12 @@ export function useGameSync(user) {
         current_game: state.currentGame,
         last_modified: new Date().toISOString(),
       }, {
-        onConflict: 'user_id'
+        onConflict: 'username'
       });
 
     if (error) throw error;
     setLastSynced(new Date());
-  }, [user]);
+  }, [username]);
 
   // Merge local and remote state
   const mergeStates = useCallback((local, remote) => {
@@ -80,7 +82,7 @@ export function useGameSync(user) {
 
   // Sync on login
   const syncOnLogin = useCallback(async () => {
-    if (!user || !isSupabaseConfigured()) return;
+    if (!username || !isSupabaseConfigured()) return null;
 
     setSyncStatus('syncing');
     try {
@@ -103,11 +105,11 @@ export function useGameSync(user) {
       setSyncStatus('error');
       return null;
     }
-  }, [user, fetchRemoteState, mergeStates, saveRemoteState]);
+  }, [username, fetchRemoteState, mergeStates, saveRemoteState]);
 
   // Debounced save to remote
   const debouncedSaveRemote = useCallback((state) => {
-    if (!user || !isSupabaseConfigured()) return;
+    if (!username || !isSupabaseConfigured()) return;
 
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
@@ -122,7 +124,7 @@ export function useGameSync(user) {
         setSyncStatus('error');
       }
     }, 2000); // 2 second debounce
-  }, [user, saveRemoteState]);
+  }, [username, saveRemoteState]);
 
   // Cleanup timeout on unmount
   useEffect(() => {

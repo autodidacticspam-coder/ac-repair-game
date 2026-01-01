@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const AuthContext = createContext(null);
+const USERNAME_KEY = 'ac-repair-game-username';
 
 export function useAuth() {
   const context = useContext(AuthContext);
@@ -12,67 +12,39 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [username, setUsername] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Load username from localStorage on mount
   useEffect(() => {
-    if (!isSupabaseConfigured()) {
-      setLoading(false);
-      return;
+    const saved = localStorage.getItem(USERNAME_KEY);
+    if (saved) {
+      setUsername(saved);
     }
-
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
-      }
-    );
-
-    return () => subscription.unsubscribe();
+    setLoading(false);
   }, []);
 
-  const signIn = async (email, password) => {
-    if (!isSupabaseConfigured()) {
-      return { error: { message: 'Supabase not configured' } };
+  const signIn = (name) => {
+    const trimmed = name.trim().toLowerCase();
+    if (trimmed) {
+      localStorage.setItem(USERNAME_KEY, trimmed);
+      setUsername(trimmed);
+      return { success: true };
     }
-    return supabase.auth.signInWithPassword({ email, password });
+    return { success: false, error: 'Please enter a username' };
   };
 
-  const signUp = async (email, password) => {
-    if (!isSupabaseConfigured()) {
-      return { error: { message: 'Supabase not configured' } };
-    }
-    return supabase.auth.signUp({ email, password });
-  };
-
-  const signOut = async () => {
-    if (!isSupabaseConfigured()) {
-      return { error: { message: 'Supabase not configured' } };
-    }
-    return supabase.auth.signOut();
-  };
-
-  const resetPassword = async (email) => {
-    if (!isSupabaseConfigured()) {
-      return { error: { message: 'Supabase not configured' } };
-    }
-    return supabase.auth.resetPasswordForEmail(email);
+  const signOut = () => {
+    localStorage.removeItem(USERNAME_KEY);
+    setUsername(null);
   };
 
   const value = {
-    user,
+    user: username ? { username } : null,
     loading,
     signIn,
-    signUp,
     signOut,
-    resetPassword,
-    isConfigured: isSupabaseConfigured(),
+    isConfigured: true,
   };
 
   return (

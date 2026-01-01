@@ -39,9 +39,16 @@
 
 .auth-modal h2 {
   color: #fff;
-  margin: 0 0 20px 0;
+  margin: 0 0 8px 0;
   text-align: center;
   font-size: 1.5rem;
+}
+
+.auth-subtitle {
+  color: #aaa;
+  text-align: center;
+  margin: 0 0 20px 0;
+  font-size: 0.9rem;
 }
 
 .auth-field {

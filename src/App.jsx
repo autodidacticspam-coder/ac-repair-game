@@ -30,8 +30,8 @@ function AppContent() {
 
   // Sync when user logs in
   useEffect(() => {
-    if (user && prevUserRef.current !== user.id) {
-      prevUserRef.current = user.id;
+    if (user && prevUserRef.current !== user.username) {
+      prevUserRef.current = user.username;
       syncOnLogin().then((mergedState) => {
         if (mergedState) {
           setGameState(mergedState);
