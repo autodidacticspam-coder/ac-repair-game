@@ -2,9 +2,43 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { loadGameState, saveGameState } from '../utils/gameState';
 
+// Calculate new streak based on last played date
+function calculateStreak(lastPlayedDate, currentStreak) {
+  if (!lastPlayedDate) return 1;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const lastPlayed = new Date(lastPlayedDate);
+  lastPlayed.setHours(0, 0, 0, 0);
+
+  if (lastPlayed.getTime() === today.getTime()) {
+    // Already played today, streak unchanged
+    return currentStreak;
+  } else if (lastPlayed.getTime() === yesterday.getTime()) {
+    // Played yesterday, increment streak
+    return currentStreak + 1;
+  } else {
+    // Streak broken, start new streak
+    return 1;
+  }
+}
+
 export function useGameSync(user) {
   const [syncStatus, setSyncStatus] = useState('idle'); // 'idle' | 'syncing' | 'synced' | 'error'
   const [lastSynced, setLastSynced] = useState(null);
+  const [userStats, setUserStats] = useState({
+    totalStars: 0,
+    totalGames: 0,
+    totalProblemsCorrect: 0,
+    totalProblemsAttempted: 0,
+    currentStreak: 0,
+    longestStreak: 0,
+    lastPlayedDate: null,
+  });
   const saveTimeoutRef = useRef(null);
 
   const username = user?.username;
@@ -26,8 +60,10 @@ export function useGameSync(user) {
   }, [username]);
 
   // Save state to Supabase
-  const saveRemoteState = useCallback(async (state) => {
+  const saveRemoteState = useCallback(async (state, stats = null) => {
     if (!username || !isSupabaseConfigured()) return;
+
+    const statsToSave = stats || userStats;
 
     const { error } = await supabase
       .from('user_game_state')
@@ -35,6 +71,12 @@ export function useGameSync(user) {
         username: username,
         settings: state.settings,
         total_stars: state.totalStars,
+        total_games: statsToSave.totalGames,
+        total_problems_correct: statsToSave.totalProblemsCorrect,
+        total_problems_attempted: statsToSave.totalProblemsAttempted,
+        current_streak: statsToSave.currentStreak,
+        longest_streak: statsToSave.longestStreak,
+        last_played_date: statsToSave.lastPlayedDate,
         unlocked_characters: state.unlockedCharacters,
         selected_character: state.selectedCharacter,
         current_game: state.currentGame,
@@ -45,7 +87,50 @@ export function useGameSync(user) {
 
     if (error) throw error;
     setLastSynced(new Date());
-  }, [username]);
+  }, [username, userStats]);
+
+  // Record a game session
+  const recordGameSession = useCallback(async (starsEarned, problemsCorrect, problemsTotal) => {
+    if (!username || !isSupabaseConfigured()) return null;
+
+    const today = new Date().toISOString().split('T')[0];
+
+    // Calculate new streak
+    const newStreak = calculateStreak(userStats.lastPlayedDate, userStats.currentStreak);
+    const newLongestStreak = Math.max(newStreak, userStats.longestStreak);
+
+    // Update local stats
+    const newStats = {
+      totalStars: userStats.totalStars + starsEarned,
+      totalGames: userStats.totalGames + 1,
+      totalProblemsCorrect: userStats.totalProblemsCorrect + problemsCorrect,
+      totalProblemsAttempted: userStats.totalProblemsAttempted + problemsTotal,
+      currentStreak: newStreak,
+      longestStreak: newLongestStreak,
+      lastPlayedDate: today,
+    };
+
+    setUserStats(newStats);
+
+    try {
+      // Insert game session
+      const { error: sessionError } = await supabase
+        .from('game_sessions')
+        .insert({
+          username: username,
+          stars_earned: starsEarned,
+          problems_correct: problemsCorrect,
+          problems_total: problemsTotal,
+        });
+
+      if (sessionError) throw sessionError;
+
+      return newStats;
+    } catch (error) {
+      console.error('Failed to record session:', error);
+      return newStats; // Still return local stats even if remote fails
+    }
+  }, [username, userStats]);
 
   // Merge local and remote state
   const mergeStates = useCallback((local, remote) => {
@@ -60,6 +145,17 @@ export function useGameSync(user) {
       currentGame: local.currentGame, // Keep local in-progress game
       lastModified: remote.last_modified,
     };
+
+    // Update user stats from remote
+    setUserStats({
+      totalStars: remote.total_stars || 0,
+      totalGames: remote.total_games || 0,
+      totalProblemsCorrect: remote.total_problems_correct || 0,
+      totalProblemsAttempted: remote.total_problems_attempted || 0,
+      currentStreak: remote.current_streak || 0,
+      longestStreak: remote.longest_streak || 0,
+      lastPlayedDate: remote.last_played_date,
+    });
 
     // Merge strategy:
     // - totalStars: take higher value
@@ -94,7 +190,15 @@ export function useGameSync(user) {
       saveGameState(merged);
 
       // Upload to remote
-      await saveRemoteState(merged);
+      await saveRemoteState(merged, remote ? {
+        totalStars: remote.total_stars || 0,
+        totalGames: remote.total_games || 0,
+        totalProblemsCorrect: remote.total_problems_correct || 0,
+        totalProblemsAttempted: remote.total_problems_attempted || 0,
+        currentStreak: remote.current_streak || 0,
+        longestStreak: remote.longest_streak || 0,
+        lastPlayedDate: remote.last_played_date,
+      } : userStats);
 
       setSyncStatus('synced');
       setLastSynced(new Date());
@@ -105,7 +209,7 @@ export function useGameSync(user) {
       setSyncStatus('error');
       return null;
     }
-  }, [username, fetchRemoteState, mergeStates, saveRemoteState]);
+  }, [username, fetchRemoteState, mergeStates, saveRemoteState, userStats]);
 
   // Debounced save to remote
   const debouncedSaveRemote = useCallback((state) => {
@@ -138,7 +242,9 @@ export function useGameSync(user) {
   return {
     syncStatus,
     lastSynced,
+    userStats,
     syncOnLogin,
     debouncedSaveRemote,
+    recordGameSession,
   };
 }

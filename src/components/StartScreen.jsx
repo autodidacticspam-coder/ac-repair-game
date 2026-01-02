@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import AuthModal from './AuthModal';
 import './StartScreen.css';
 
-export default function StartScreen({ settings, totalStars, selectedCharacter, onStartGame, onSettingsChange, hasSavedGame, onResume, onCharacterSelect, syncStatus }) {
+export default function StartScreen({ settings, totalStars, selectedCharacter, onStartGame, onSettingsChange, hasSavedGame, onResume, onCharacterSelect, onStatsScreen, syncStatus }) {
   const [characterImage, setCharacterImage] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { user, signOut, isConfigured } = useAuth();
@@ -209,6 +209,9 @@ export default function StartScreen({ settings, totalStars, selectedCharacter, o
             Resume Game
           </button>
         )}
+        <button className="stats-button" onClick={onStatsScreen}>
+          My Progress
+        </button>
       </div>
 
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />

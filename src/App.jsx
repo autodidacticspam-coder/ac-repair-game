@@ -3,6 +3,7 @@ import StartScreen from './components/StartScreen';
 import CharacterSelectScreen from './components/CharacterSelectScreen';
 import GameScreen from './components/GameScreen';
 import GameComplete from './components/GameComplete';
+import StatsScreen from './components/StatsScreen';
 import { loadGameState, saveGameState, defaultSettings } from './utils/gameState';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useGameSync } from './hooks/useGameSync';
@@ -16,8 +17,9 @@ function AppContent() {
   const [gameKey, setGameKey] = useState(0); // Used to force remount GameScreen
 
   const { user } = useAuth();
-  const { syncStatus, syncOnLogin, debouncedSaveRemote } = useGameSync(user);
+  const { syncStatus, syncOnLogin, debouncedSaveRemote, recordGameSession, userStats } = useGameSync(user);
   const prevUserRef = useRef(null);
+  const [lastGameStats, setLastGameStats] = useState({ problemsCorrect: 0, problemsTotal: 0 });
 
   // Load saved game data on mount
   useEffect(() => {
@@ -80,13 +82,20 @@ function AppContent() {
     }));
   }, []);
 
-  const handleGameEnd = (stars) => {
+  const handleGameEnd = (stars, problemsCorrect = 0, problemsTotal = 0) => {
     setStarsEarnedThisGame(stars);
+    setLastGameStats({ problemsCorrect, problemsTotal });
     setSavedGameData(null);
     setGameState(prev => ({
       ...prev,
       currentGame: null,
     }));
+
+    // Record the game session if user is logged in
+    if (user) {
+      recordGameSession(stars, problemsCorrect, problemsTotal);
+    }
+
     setScreen('complete');
   };
 
@@ -109,6 +118,10 @@ function AppContent() {
 
   const handleCharacterScreen = () => {
     setScreen('characters');
+  };
+
+  const handleStatsScreen = () => {
+    setScreen('stats');
   };
 
   const handleSelectCharacter = (characterId) => {
@@ -139,7 +152,15 @@ function AppContent() {
           hasSavedGame={!!savedGameData}
           onResume={handleResumeGame}
           onCharacterSelect={handleCharacterScreen}
+          onStatsScreen={handleStatsScreen}
           syncStatus={syncStatus}
+        />
+      )}
+
+      {screen === 'stats' && (
+        <StatsScreen
+          userStats={userStats}
+          onBack={handleMainMenu}
         />
       )}
 

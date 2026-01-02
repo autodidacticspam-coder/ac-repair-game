@@ -312,6 +312,17 @@
   box-shadow: 0 5px 20px rgba(74, 144, 217, 0.4);
 }
 
+.stats-button {
+  background: #9c27b0;
+  color: white;
+}
+
+.stats-button:hover {
+  background: #7b1fa2;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(156, 39, 176, 0.4);
+}
+
 /* Auth Section */
 .auth-section {
   margin-top: 15px;

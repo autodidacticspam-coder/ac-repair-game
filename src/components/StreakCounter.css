@@ -1,0 +1,36 @@
+.streak-counter {
+  background: linear-gradient(135deg, #ff9500, #ff5e3a);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  color: white;
+}
+
+.streak-current {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.streak-fire {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.streak-number {
+  font-size: 3rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.streak-text {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.streak-best {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}

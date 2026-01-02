@@ -22,6 +22,8 @@ export default function GameScreen({ settings, selectedCharacter, onGameEnd, onS
       showingAnswer: false,
       isRepairing: false,
       starsThisGame: 0,
+      problemsCorrect: 0,
+      problemsTotal: 0,
       roundComplete: false,
     };
   });
@@ -559,6 +561,8 @@ export default function GameScreen({ settings, selectedCharacter, onGameEnd, onS
 
         const allFixed = newAcs.every(ac => ac.fixed);
         const newStars = prev.starsThisGame + 1;
+        const newProblemsCorrect = prev.problemsCorrect + 1;
+        const newProblemsTotal = prev.problemsTotal + 1;
 
         if (allFixed) {
           // Round complete
@@ -566,7 +570,7 @@ export default function GameScreen({ settings, selectedCharacter, onGameEnd, onS
             // Game complete - will be handled after state update
             setTimeout(() => {
               onStarsEarned(newStars);
-              onGameEnd(newStars);
+              onGameEnd(newStars, newProblemsCorrect, newProblemsTotal);
             }, 0);
             return prev; // Return unchanged, game ending
           } else {
@@ -575,6 +579,8 @@ export default function GameScreen({ settings, selectedCharacter, onGameEnd, onS
               ...prev,
               roundComplete: true,
               starsThisGame: newStars,
+              problemsCorrect: newProblemsCorrect,
+              problemsTotal: newProblemsTotal,
               map: { ...prev.map, acs: newAcs },
               activeAC: null,
               mathProblem: null,
@@ -588,6 +594,8 @@ export default function GameScreen({ settings, selectedCharacter, onGameEnd, onS
             mathProblem: null,
             userAnswer: '',
             starsThisGame: newStars,
+            problemsCorrect: newProblemsCorrect,
+            problemsTotal: newProblemsTotal,
           };
         }
       });
@@ -597,7 +605,9 @@ export default function GameScreen({ settings, selectedCharacter, onGameEnd, onS
         const newAttempts = prev.attempts + 1;
 
         if (newAttempts >= 5) {
-          // Show answer and move on
+          // Show answer and move on (count as attempted but not correct)
+          const newProblemsTotal = prev.problemsTotal + 1;
+
           setTimeout(() => {
             setGameState(innerPrev => {
               // Mark AC as fixed anyway (no star)
@@ -611,7 +621,7 @@ export default function GameScreen({ settings, selectedCharacter, onGameEnd, onS
                 if (innerPrev.currentRound >= settings.numRounds) {
                   setTimeout(() => {
                     onStarsEarned(innerPrev.starsThisGame);
-                    onGameEnd(innerPrev.starsThisGame);
+                    onGameEnd(innerPrev.starsThisGame, innerPrev.problemsCorrect, innerPrev.problemsTotal);
                   }, 0);
                   return innerPrev;
                 } else {
@@ -641,6 +651,7 @@ export default function GameScreen({ settings, selectedCharacter, onGameEnd, onS
             ...prev,
             attempts: newAttempts,
             showingAnswer: true,
+            problemsTotal: newProblemsTotal,
           };
         } else {
           return {

@@ -1,0 +1,71 @@
+.period-stats {
+  background: #f8f9fa;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.period-tabs {
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.period-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.period-tab {
+  flex: 1;
+  min-width: fit-content;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  color: #666;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.period-tab:hover {
+  color: var(--primary-color);
+}
+
+.period-tab.active {
+  color: var(--primary-color);
+  background: white;
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.period-content {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 15px;
+}
+
+.period-stat {
+  text-align: center;
+}
+
+.period-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--text-color);
+  line-height: 1.2;
+}
+
+.period-label {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+@media (max-width: 400px) {
+  .period-content {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
