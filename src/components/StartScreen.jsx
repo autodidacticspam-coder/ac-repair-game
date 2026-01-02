@@ -41,10 +41,15 @@ export default function StartScreen({ settings, totalStars, selectedCharacter, o
           {user ? (
             <div className="user-info">
               <span className="user-name">Playing as: {user.username}</span>
-              {syncStatus === 'syncing' && <span className="sync-status syncing">Syncing...</span>}
-              {syncStatus === 'synced' && <span className="sync-status synced">Synced</span>}
-              {syncStatus === 'error' && <span className="sync-status error">Sync error</span>}
-              <button className="auth-btn sign-out" onClick={handleSignOut}>Change Name</button>
+              <div className="sync-row">
+                {syncStatus === 'syncing' && <span className="sync-status syncing">Syncing...</span>}
+                {syncStatus === 'synced' && <span className="sync-status synced">Synced</span>}
+                {syncStatus === 'error' && <span className="sync-status error">Sync error</span>}
+                <button className="auth-btn sign-out" onClick={handleSignOut}>Change Name</button>
+              </div>
+              <button className="progress-btn" onClick={onStatsScreen}>
+                My Progress
+              </button>
             </div>
           ) : (
             <button className="auth-btn sign-in" onClick={() => setShowAuthModal(true)}>
@@ -209,9 +214,6 @@ export default function StartScreen({ settings, totalStars, selectedCharacter, o
             Resume Game
           </button>
         )}
-        <button className="stats-button" onClick={onStatsScreen}>
-          My Progress
-        </button>
       </div>
 
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />

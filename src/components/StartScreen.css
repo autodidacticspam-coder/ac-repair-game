@@ -13,30 +13,37 @@
 
 .title-section {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .title-section h1 {
   color: var(--text-color);
-  font-size: 2.5rem;
-  margin-bottom: 15px;
+  font-size: 2.2rem;
+  margin-bottom: 12px;
 }
 
 .star-display {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  font-size: 1.5rem;
+  gap: 8px;
+  font-size: 1.4rem;
+  background: linear-gradient(135deg, #fff9e6, #fff3cd);
+  padding: 8px 20px;
+  border-radius: 25px;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
 }
 
 .star-icon {
-  font-size: 2rem;
+  font-size: 1.6rem;
 }
 
 .star-count {
-  color: var(--warning-color);
-  font-weight: bold;
+  color: #f59f00;
+  font-weight: 800;
+  font-size: 1.5rem;
 }
 
 .settings-panel {
@@ -312,20 +319,10 @@
   box-shadow: 0 5px 20px rgba(74, 144, 217, 0.4);
 }
 
-.stats-button {
-  background: #9c27b0;
-  color: white;
-}
-
-.stats-button:hover {
-  background: #7b1fa2;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(156, 39, 176, 0.4);
-}
-
 /* Auth Section */
 .auth-section {
-  margin-top: 15px;
+  margin-top: 18px;
+  padding-top: 5px;
 }
 
 .auth-btn {
@@ -360,13 +357,43 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .user-name {
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   color: var(--text-color);
-  font-weight: 600;
+  font-weight: 700;
+}
+
+.sync-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress-btn {
+  width: 100%;
+  max-width: 280px;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+}
+
+.progress-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4);
+}
+
+.progress-btn:active {
+  transform: translateY(0);
 }
 
 .sync-status {
