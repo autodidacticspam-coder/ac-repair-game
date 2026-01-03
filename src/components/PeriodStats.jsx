@@ -30,10 +30,6 @@ export default function PeriodStats({ stats }) {
       </div>
       <div className="period-content">
         <div className="period-stat">
-          <span className="period-value">{currentStats.gamesPlayed}</span>
-          <span className="period-label">Games</span>
-        </div>
-        <div className="period-stat">
           <span className="period-value">{currentStats.starsEarned}</span>
           <span className="period-label">Stars</span>
         </div>
