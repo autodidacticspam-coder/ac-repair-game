@@ -125,6 +125,24 @@ export function useGameSync(user) {
 
       if (sessionError) throw sessionError;
 
+      // Also update user_game_state with new streak values immediately
+      const { error: stateError } = await supabase
+        .from('user_game_state')
+        .upsert({
+          username: username,
+          total_games: newStats.totalGames,
+          total_problems_correct: newStats.totalProblemsCorrect,
+          total_problems_attempted: newStats.totalProblemsAttempted,
+          current_streak: newStats.currentStreak,
+          longest_streak: newStats.longestStreak,
+          last_played_date: newStats.lastPlayedDate,
+          last_modified: new Date().toISOString(),
+        }, {
+          onConflict: 'username'
+        });
+
+      if (stateError) console.error('Failed to update streak:', stateError);
+
       return newStats;
     } catch (error) {
       console.error('Failed to record session:', error);
