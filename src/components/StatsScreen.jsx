@@ -78,11 +78,6 @@ export default function StatsScreen({ userStats, onBack }) {
             value={userStats.totalStars || 0}
           />
           <StatCard
-            icon="🎮"
-            label="Games Played"
-            value={userStats.totalGames || 0}
-          />
-          <StatCard
             icon="✓"
             label="Problems Solved"
             value={userStats.totalProblemsCorrect || 0}
