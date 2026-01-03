@@ -18,21 +18,27 @@ export default function DayDetailModal({ date, sessions, onClose }) {
   const totalAttempted = sessions.reduce((sum, s) => sum + s.problems_total, 0);
   const accuracy = totalAttempted > 0 ? Math.round((totalCorrect / totalAttempted) * 100) : 0;
 
-  // Group sessions by settings to find patterns
+  // Group sessions by full settings combination (mode + ranges)
   const settingsBreakdown = {};
   sessions.forEach(session => {
     if (!session.settings) return;
 
-    const key = `${session.settings.mathMode || 'both'}-${session.settings.blankMode ? 'blank' : 'standard'}`;
+    const s = session.settings;
+    const key = `${s.mathMode || 'both'}-${s.blankMode ? 'blank' : 'standard'}-${s.minValue1}-${s.maxValue1}-${s.minValue2}-${s.maxValue2}`;
+
     if (!settingsBreakdown[key]) {
       settingsBreakdown[key] = {
-        mathMode: session.settings.mathMode || 'both',
-        blankMode: session.settings.blankMode || false,
+        mathMode: s.mathMode || 'both',
+        blankMode: s.blankMode || false,
+        range1: { min: s.minValue1, max: s.maxValue1 },
+        range2: { min: s.minValue2, max: s.maxValue2 },
+        stars: 0,
         correct: 0,
         total: 0,
         sessions: 0,
       };
     }
+    settingsBreakdown[key].stars += session.stars_earned;
     settingsBreakdown[key].correct += session.problems_correct;
     settingsBreakdown[key].total += session.problems_total;
     settingsBreakdown[key].sessions += 1;
@@ -86,21 +92,32 @@ export default function DayDetailModal({ date, sessions, onClose }) {
 
         {Object.keys(settingsBreakdown).length > 0 && (
           <div className="settings-breakdown">
-            <h3>Performance by Mode</h3>
+            <h3>Performance by Settings</h3>
             {Object.values(settingsBreakdown).map((item, index) => {
               const itemAccuracy = item.total > 0 ? Math.round((item.correct / item.total) * 100) : 0;
               return (
-                <div key={index} className="breakdown-item">
-                  <div className="breakdown-mode">
+                <div key={index} className="breakdown-card">
+                  <div className="breakdown-header">
                     <span className="mode-name">{getMathModeLabel(item.mathMode)}</span>
                     <span className="mode-style">{item.blankMode ? 'Find Missing' : 'Standard'}</span>
                   </div>
-                  <div className="breakdown-stats">
-                    <span className="breakdown-fraction">{item.correct}/{item.total}</span>
-                    <span className={`breakdown-accuracy ${getAccuracyColor(itemAccuracy)}`}>
-                      {itemAccuracy}%
-                    </span>
-                    <span className="breakdown-label">{getAccuracyLabel(itemAccuracy)}</span>
+                  <div className="breakdown-ranges">
+                    <span>1st: {item.range1.min}-{item.range1.max}</span>
+                    <span>2nd: {item.range2.min}-{item.range2.max}</span>
+                  </div>
+                  <div className="breakdown-results">
+                    <div className="result-item">
+                      <span className="result-value">{item.stars}</span>
+                      <span className="result-label">Stars</span>
+                    </div>
+                    <div className="result-item">
+                      <span className="result-value">{item.correct}/{item.total}</span>
+                      <span className="result-label">Correct</span>
+                    </div>
+                    <div className="result-item">
+                      <span className={`result-value ${getAccuracyColor(itemAccuracy)}`}>{itemAccuracy}%</span>
+                      <span className="result-label">{getAccuracyLabel(itemAccuracy)}</span>
+                    </div>
                   </div>
                 </div>
               );
