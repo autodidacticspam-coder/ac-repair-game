@@ -71,19 +71,18 @@ export default function CalendarHeatmap({ dailyData }) {
                 className={`calendar-cell ${cell ? `intensity-${getIntensity(cell.games)}` : 'empty'} ${cell?.isToday ? 'today' : ''}`}
                 title={cell ? `${cell.date}: ${cell.games} games, ${cell.stars} stars` : ''}
               >
-                {cell?.day}
+                {cell && (
+                  <>
+                    <span className="cell-day">{cell.day}</span>
+                    {cell.stars > 0 && (
+                      <span className="cell-stars">{cell.stars}⭐</span>
+                    )}
+                  </>
+                )}
               </div>
             ))}
           </div>
         ))}
-      </div>
-      <div className="calendar-legend">
-        <span>Less</span>
-        <div className="legend-cell intensity-none"></div>
-        <div className="legend-cell intensity-low"></div>
-        <div className="legend-cell intensity-medium"></div>
-        <div className="legend-cell intensity-high"></div>
-        <span>More</span>
       </div>
     </div>
   );
