@@ -1,14 +1,20 @@
+import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useStats } from '../hooks/useStats';
 import StreakCounter from './StreakCounter';
 import StatCard from './StatCard';
 import CalendarHeatmap from './CalendarHeatmap';
 import PeriodStats from './PeriodStats';
+import DayDetailModal from './DayDetailModal';
 import './StatsScreen.css';
 
 export default function StatsScreen({ userStats, onBack }) {
   const { user } = useAuth();
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedSessions, setSelectedSessions] = useState([]);
+
   const {
+    sessions,
     loading,
     getTodayStats,
     getWeekStats,
@@ -18,6 +24,16 @@ export default function StatsScreen({ userStats, onBack }) {
     getAllTimeStats,
     getDailyData,
   } = useStats(user?.username);
+
+  const handleDayClick = (date, daySessions) => {
+    setSelectedDay(date);
+    setSelectedSessions(daySessions);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedDay(null);
+    setSelectedSessions([]);
+  };
 
   const allTime = getAllTimeStats();
   const dailyData = getDailyData(60); // Get 60 days for calendar
@@ -93,8 +109,20 @@ export default function StatsScreen({ userStats, onBack }) {
 
         <PeriodStats stats={periodStats} />
 
-        <CalendarHeatmap dailyData={dailyData} />
+        <CalendarHeatmap
+          dailyData={dailyData}
+          sessions={sessions}
+          onDayClick={handleDayClick}
+        />
       </div>
+
+      {selectedDay && (
+        <DayDetailModal
+          date={selectedDay}
+          sessions={selectedSessions}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 }

@@ -90,7 +90,7 @@ export function useGameSync(user) {
   }, [username, userStats]);
 
   // Record a game session
-  const recordGameSession = useCallback(async (starsEarned, problemsCorrect, problemsTotal) => {
+  const recordGameSession = useCallback(async (starsEarned, problemsCorrect, problemsTotal, gameSettings = null) => {
     if (!username || !isSupabaseConfigured()) return null;
 
     const today = new Date().toISOString().split('T')[0];
@@ -113,7 +113,7 @@ export function useGameSync(user) {
     setUserStats(newStats);
 
     try {
-      // Insert game session
+      // Insert game session with settings
       const { error: sessionError } = await supabase
         .from('game_sessions')
         .insert({
@@ -121,6 +121,7 @@ export function useGameSync(user) {
           stars_earned: starsEarned,
           problems_correct: problemsCorrect,
           problems_total: problemsTotal,
+          settings: gameSettings,
         });
 
       if (sessionError) throw sessionError;

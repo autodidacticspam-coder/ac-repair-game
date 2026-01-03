@@ -94,6 +94,20 @@
   outline-offset: -2px;
 }
 
+.calendar-cell.clickable {
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.calendar-cell.clickable:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.calendar-cell.clickable:active {
+  transform: scale(0.98);
+}
+
 .calendar-legend {
   display: flex;
   align-items: center;

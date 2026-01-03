@@ -30,7 +30,8 @@ CREATE TABLE game_sessions (
   played_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   stars_earned INTEGER NOT NULL,
   problems_correct INTEGER NOT NULL,
-  problems_total INTEGER NOT NULL
+  problems_total INTEGER NOT NULL,
+  settings JSONB DEFAULT NULL
 );
 
 -- Create index for faster queries by username and date

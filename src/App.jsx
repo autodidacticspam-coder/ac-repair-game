@@ -91,9 +91,9 @@ function AppContent() {
       currentGame: null,
     }));
 
-    // Record the game session if user is logged in
+    // Record the game session if user is logged in (include settings)
     if (user) {
-      recordGameSession(stars, problemsCorrect, problemsTotal);
+      recordGameSession(stars, problemsCorrect, problemsTotal, gameState.settings);
     }
 
     setScreen('complete');

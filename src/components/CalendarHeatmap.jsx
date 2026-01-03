@@ -1,9 +1,23 @@
 import './CalendarHeatmap.css';
 
-export default function CalendarHeatmap({ dailyData }) {
+export default function CalendarHeatmap({ dailyData, sessions = [], onDayClick }) {
   const today = new Date();
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
+
+  const handleCellClick = (dateStr, data) => {
+    if (!onDayClick || !data || data.games === 0) return;
+
+    // Filter sessions for this specific date
+    const daySessions = sessions.filter(s => {
+      const sessionDate = new Date(s.played_at).toISOString().split('T')[0];
+      return sessionDate === dateStr;
+    });
+
+    if (daySessions.length > 0) {
+      onDayClick(dateStr, daySessions);
+    }
+  };
 
   // Get first day of month and number of days
   const firstDay = new Date(currentYear, currentMonth, 1).getDay();
@@ -68,8 +82,9 @@ export default function CalendarHeatmap({ dailyData }) {
             {week.map((cell, di) => (
               <div
                 key={di}
-                className={`calendar-cell ${cell ? `intensity-${getIntensity(cell.games)}` : 'empty'} ${cell?.isToday ? 'today' : ''}`}
-                title={cell ? `${cell.date}: ${cell.games} games, ${cell.stars} stars` : ''}
+                className={`calendar-cell ${cell ? `intensity-${getIntensity(cell.games)}` : 'empty'} ${cell?.isToday ? 'today' : ''} ${cell?.games > 0 ? 'clickable' : ''}`}
+                title={cell ? `${cell.date}: ${cell.stars} stars - Tap for details` : ''}
+                onClick={() => cell && handleCellClick(cell.date, cell)}
               >
                 {cell && (
                   <>
